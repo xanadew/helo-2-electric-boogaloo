@@ -58,9 +58,9 @@ passport.use(new Auth0Strategy({
             .then(user => {
                 console.log('fresh meat: ', user);
                 return done(null, user[0].id, user[0].firstname, user[0].lastname);
-            })
+            }).catch(err => console.log('fuck - create_user: ', err));
         }
-    })
+    }).catch(err => console.log('fuck - finduser: ', err));
 }));
 
 app.get('/auth/login', passport.authenticate('auth0'));
@@ -78,8 +78,8 @@ app.get('/api/auth/authenticated', (req,res) => {
 }});
 
 app.post('/auth/logout', (req,res) => {
-    req.session.destroy();
-    res.status(200).send('GTFO');
+    req.logOut();
+    res.redirect('http://localhost:3000/auth/callback')
 });
 
 passport.serializeUser((user,done) => {

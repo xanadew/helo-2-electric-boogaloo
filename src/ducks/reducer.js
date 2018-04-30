@@ -1,3 +1,5 @@
+// import axios from 'axios';
+
 const initState = {
     user: [],
     firstName: '',
@@ -31,73 +33,80 @@ const USER = 'USER',
 const reducer = (state = initState, action) => {
     const {payload} = action;
     switch (action.type) {
-        case USER + '_FULFILLED':
+        case USER:
             return {...state, user:payload};
-        case FIRSTNAME + '_FULFILLED':
+        case FIRSTNAME:
             return {...state, firstName:payload};
-        case LASTNAME + '_FULFILLED':
+        case LASTNAME:
             return {...state, lastName:payload};
-        case GENDER + '_FULFILLED':
+        case GENDER:
             return {...state, gender:payload};
-        case HAIRCOLOR + '_FULFILLED':
+        case HAIRCOLOR:
             return {...state, hairColor:payload};
-        case EYECOLOR + '_FULFILLED':
+        case EYECOLOR:
             return {...state, eyeColor:payload};
-        case BIRTHDAY + '_FULFILLED':
+        case BIRTHDAY:
             return {...state, birthDay:payload};
-        case BIRTHMONTH + '_FULFILLED':
+        case BIRTHMONTH:
             return {...state, birthMonth:payload};
-        case BIRTHYEAR + '_FULFILLED':
+        case BIRTHYEAR:
             return {...state, birthYear:payload};
-        case ALLUSERS + '_FULFILLED':
+        case ALLUSERS:
             return {...state, allUsers:payload};
-        case USERFRIENDS + '_FULFILLED':
+        case USERFRIENDS:
             return {...state, userFriends:payload};
-        case PAGINATEDUSERS + '_FULFILLED':
+        case PAGINATEDUSERS:
             return {...state, paginatedUsers:payload};
         default:
             return state
     }
 }
-export const getUser = (history) => {
+export const getUser = (user) => {
+    console.log('reducer getuser hit');
     return {
         type: USER,
-        payload: axios.get('/api/auth/authenticated').then(res => {
-            res.data.id ? res.data : history.push('/');
-        })
+        payload: user//axios.get('/api/auth/authenticated').then(res => {
+ //          return res.data.id ? res.data : history.push('/');
+ //       }).catch(err => console.log('reducer fuckup: ', err))
     }
 }
 export const updateFirstName = (firstName) => {
+    console.log('reducer updatefn hit');
     return {
         type: FIRSTNAME,
         payload: firstName
     }
 }
 export const updateLastName = (lastName) => {
+    console.log('reducer updateln hit');
     return {
         type: LASTNAME,
         payload: lastName
     }
 }
 export const updateGender = (gender) => {
+    console.log('reducer updategender hit');
     return {
         type: GENDER,
         payload: gender
     }
 }
 export const updateHobby = (hobby) => {
+    console.log('reducer hobby hit');
     return {
         type: HOBBY,
         payload: hobby
     }
 }
 export const updateHairColor = (hairColor) => {
+    console.log('reducer hair hit');
     return {
         type: HAIRCOLOR,
         payload: hairColor
     }
 }
 export const updateEyeColor = (eyeColor) => {
+    console.log('reducer eye hit');
     return {
         type: EYECOLOR,
         payload: eyeColor

@@ -20,17 +20,16 @@ class Dash extends React.Component {
     }
 
     componentDidMount(){
-        let {getUser,getAllUsers,getFriends} = this.props;
-
         axios.all([
             axios.get('/api/auth/authenticated'),
             axios.get('/api/recommended'),
             axios.get('/api/friend/list')
         ]).then(res => {
-            getUser(res[0].data);
-            getAllUsers(res[1].data);
-            getFriends(res[2].data);
-        })
+            this.props.getUser(res[0].data);
+            this.props.getAllUsers(res[1].data);
+            this.props.getFriends(res[2].data);
+            console.log('res.data from axios: ', res.data[0], res.data[1], res.data[2]);
+        }).catch(err => console.log('FUCK UUUUUU: ', err))
     }
 
     sortedBy(val){
