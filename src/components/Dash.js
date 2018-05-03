@@ -3,134 +3,117 @@ import Nav from './Nav';
 import axios from 'axios';
 import {Link} from 'react-router-dom';
 import {connect} from 'react-redux';
-import {getUser,getAllUsers,getFriends} from '../ducks/reducer';
+import {getUser} from '../ducks/reducer';
 import '../App.css';
 
 
 class Dash extends React.Component {
-    constructor(props) {
-        super(props);
+    constructor() {
+        super();
         this.state = {
-            recUsers: [],
-            friendList: [],
-            selectedBox: ''
+            view: 'Dashboard',
+            users: [],
+            filter: 'First',
+            value: 'first_name'
         };
-        this.sortedBy = this.sortedBy.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.addFriend = this.addFriend.bind(this);
     }
 
     componentDidMount(){
-        axios.all([
-            axios.get('/api/auth/authenticated'),
-            axios.get('/api/recommended'),
-            axios.get('/api/friend/list')
-        ]).then(res => {
-            this.props.getUser(res[0].data);
-            this.props.getAllUsers(res[1].data);
-            this.props.getFriends(res[2].data);
-            console.log('res.data from axios: ', res.data[0], res.data[1], res.data[2]);
-        }).catch(err => console.log('FUCK UUUUUU: ', err))
-    }
-
-    sortedBy(val){
-        let {getAllUsers, allUsers, user, userFriends} = this.props;
-
-        this.setState({selectedBox: val});
-
+        let {history} = this.props;
+        this.props.getUser(history);
         axios.get('/api/recommended').then(res => {
-            getAllUsers(res.data);
-        });
-
-        let filteredUsers = allUsers.filter(common => {
-            return common[val] === user[val]
-            });
-        console.log('filtered fools: ', filteredUsers);
-        let friendIds = userFriends.map((val,i) => {
-           return friendIds.push(val.friend_id);
-        });
-        let superFiltered = filteredUsers.filter((uid, i) => {
-            return friendIds.indexOf(uid.id) === -1;
-        });
+            console.log(res.data);
+            this.setState({users: res.data});
+        })
+    }
+    handleChange(e){
         this.setState({
-            recUsers: superFiltered
+            value: e.target.value
         });
     }
-    addFriend(friendId){
-        let {user, history, userFriends} = this.props;
-        let friend = {
-            id: user.id,
-            friend_id: friendId
-        }
-        axios.post('/api/friend/add', friend).then(res => {
-            console.log('add friend @ dash: ', res.data);
-            history.push('/dash');
-            userFriends.push(res.data);
-            this.sortedBy(this.state.selectedBox);
+    addFriend(val){
+        axios.post('/api/friend/add', {val}).then(res => {
+            axios.get('/api/recommended').then(res => {
+                this.setState({
+                    users: res.data
+                });
+            }).catch(err => console.log('addfriend fuck: ', err))
         })
     }
 
     render() {
-        let userCards = this.state.recUsers.map((val, i) => {
-            return <div key={i} className='recFriend'>
-                <div className='imgNameContainer'>
-                    <img className='recFriendPic' src={val.picture} alt=''/>
-                    <div className='nameContainer'>
-                        <h3 className='recFriendName'>{val.firstname}</h3> 
-                        <h3 className='recFriendName'>{val.lastname}</h3> 
+        let {user} = this.props;
+        let {value} = this.state;
+        if(user[0]){
+            var filterRec = this.state.users.filter( people => people[value] === user[0][value] && people.id !== user[0].id)
+            var friendBoxes = filterRec.map( (people, i) => {
+                return (
+                    <div key={i} className="friendBox">
+
+                        <img width="100px" src={people.img} alt="not found"/>
+
+                        <div className="friendBox_name">
+                            <span>{people.first_name} </span>
+                            <span>{people.last_name}</span>
+                        </div>
+
+                        <button className="friendBox_button" onClick={() => this.addFriend(people.id)}>add friend</button>
+
+                    </div>
+                )
+            })
+        }
+        return (
+            <div>
+                <Nav>{this.state.view}</Nav>
+                <div className="pagebody">
+                    <div className="dashcontent">
+                        <div className="top2">
+                            <div className="user_element">
+                                <div>
+                                    { user[0] ? <div>{<img id="profile_img_dashboard" className="profile_img" alt="profile_img" src={user[0].img}/>}</div> :   <img id="profile_img_dashboard" className="profile_img" alt="profile_img"/>}
+                                </div>
+                                <div>
+                                { user[0] ? <div>{<h3>{user[0].first_name || "firstName"}</h3>}</div> : <h3>firstName</h3>}
+                                { user[0] ? <div>{<h3>{user[0].last_name || "lastName"}</h3>}</div> : <h3>lastName</h3>}
+                                <Link to="/profile"><button id="greybutton" className="search_button">Edit Profile</button></Link>
+                                </div>
+                            </div>
+                            <div className="welcomebox">
+                                <span className="welcomespan">Welcome to Helo! Find recommended friends based on your similarities, and even search for them by name. The more you update your profile, the better recommendations we can make!</span>
+                            </div>
+                        </div>
+                        <div className="bottom_contents">
+                            <div className="bottomtop_conts">
+                            </div>
+                            <div className="recommended">
+                                <div className="friendsLine">
+                                    <span className="friendsText">Recommended Friends</span>
+                                    <div>
+                                        <span className="sortText">Sorted by</span>
+                                        <select value={this.state.value} onChange={this.handleChange} className="search_select">
+                                        <option value='first_name'>First Name</option>
+                                        <option value='last_name'>Last Name</option>
+                                        <option value='gender'>Gender</option>
+                                        <option value='hobby'>Hobby</option>
+                                        <option value='hair_color'>Hair Color</option>
+                                        <option value='eye_color'>Eye Color</option>
+                                        <option value='bday'>Birthday</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="recommendedFriends">
+                                {friendBoxes}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <button className='addFriendButton' value={val.id} onClick={(e) => this.addFriend(e.target.value)}>Add Friend</button>
             </div>
-        })
-        return(
-            <div className='dash'>
-                <Nav/>
-                <div className='midDashContainer'>
-                    <div className='top2Containers'>
-                        <div className='dashNameImgContainer'>
-                            <div className='dashProfileAvatar'>
-                                <img className='avatarImg' src={this.props.user.picture} alt=''/>
-                            </div>
-                            <div className='dashProfileIcons'>
-                                <h4>{this.props.user.firstname} {this.props.user.lastname}</h4>
-                                <Link to='/profile'><button className='dashEditProfile'>Edit Profile</button></Link>
-                            </div>
-                        </div>
-                        <div className='welcome'>
-                            <p>Welcome to Helo! Find recommended friends based on your similarities, and even search for them by name. The more you update your profile, the better recommendations we can make!</p>
-                        </div>
-                    </div>
-                    <div className='dashBottomContainer'>
-                        <div className='dashTitleSelect'>
-                            <h3 className='recFriends'>Recommended Friends</h3>
-                            <div className='sortedBy'>
-                                <h4>Sorted By</h4>
-                                <select className='sortDropdown' onChange={(e) => this.sortedBy(e.target.value)}>
-                                    <option value='firstname'>First Name</option>
-                                    <option value='lastname'>Last Name</option>
-                                    <option value='gender'>Gender</option>
-                                    <option value='hobby'>Hobby</option>
-                                    <option value='haircolor'>Hair Color</option>
-                                    <option value='eyecolor'>Eye Color</option>
-                                    <option value='birthday'>Birthday</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div className='recFriendsContainer'>
-                        {userCards}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
+        )
     }
 }
-let mapStateToProps = state => {
-    const {user, allUsers, userFriends} = state;
-    return {
-        user,
-        allUsers,
-        userFriends
-    }
-}
-export default connect(mapStateToProps,{getUser, getAllUsers, getFriends})(Dash);
+
+export default connect( state => state, { getUser } )(Dash);

@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import {Link} from 'react-router-dom';
 import {connect} from 'react-redux';
-import {getUser, updateFirstName, updateLastName, updateGender, updateHairColor, updateEyeColor, updateHobby, updateBirthDay, updateBirthMonth, updateBirthYear} from '../ducks/reducer';
+import {getUser} from '../ducks/reducer';
 import Nav from './Nav';
 import '../App.css';
 
@@ -10,190 +9,243 @@ class Profile extends Component {
     constructor(props){
         super(props);
         this.state = {
-            days: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
-            months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-            userInfo: {
-                firstName: this.props.user.firstname,
+            view: 'Profile',
+                firstName: '',
                 lastName: '',
-                gender: '',
-                hairColor: '',
-                eyeColor: '',
-                hobby: '',
-                birthDay: '', 
-                birthMonth: '', 
-                birthYear: ''
-            },
-            currentDate: 0
-        }
-        this.updateShmupdate = this.updateShmupdate.bind(this);
-    }
+                gender: 'male',
+                hairColor: 'Brown',
+                eyeColor: 'Brown',
+                hobby: 'Pickling',
+                birthDay: 1, 
+                birthMonth: 'Jan', 
+                birthYear: 2018,
+                firstNameTitle: '',
+                lastNameTitle: '',
+                picture: '',
+                user: []
+            }
+            this.handleChange = this.handleChange.bind(this);
+            this.cancelUpdates = this.cancelUpdates.bind(this);
+            this.updateShmupdate = this.updateShmupdate.bind(this);
+        } 
     componentDidMount(){
         // const {history, getUser} = this.props;
         // getUser(history);
         // console.log(this.props);
-        if (!this.props.user){
-            this.props.history.push('/');
-        }
-        let date = new Date().getFullYear();
+        const {history, getUser} = this.props;
+        getUser(history);
+        axios.get('/api/user').then(user =>{
+            let {first_name, last_name, gender, hair_color, eye_color,
+                hobby, bday, bmonth, byear, img} = user.data[0];
+            this.setState({
+                firstName: first_name || '',
+                firstNameTitle: first_name || '',
+                lastName: last_name || '',
+                lastNameTitle: last_name || '',
+                gender: gender || '',
+                hairColor: hair_color || '',
+                eyeColor: eye_color || '',
+                hobby: hobby || '',
+                birthDay: bday || 0,
+                birthMonth: bmonth || '',
+                birthYear: byear || 0,
+                picture: img || '',
+                user: user.data
+            })
+        }).catch(err => console.log('profile get fuckd: ', err))
+    }
+    handleChange(val, val2){
+        this.setState({[val2]: val})
+    }
+    cancelUpdates(){
+        const {user} = this.state;
+        let {first_name, last_name, gender, hair_color, eye_color,
+            hobby, bday, bmonth, byear, img} = user[0];
         this.setState({
-            currentDate: date
-        })
-    }
-    changeFirst(firstName){
-        this.props.updateFirstName(firstName);
-    }
-    changeLast(lastName){
-        this.props.updateLastName(lastName);
-    }
-    changeGender(gender){
-        this.props.updateGender(gender);
-    }
-    changeHairColor(hairColor){
-        this.props.updateHairColor(hairColor);
-    }
-    changeEyeColor(eyeColor){
-        this.props.updateEyeColor(eyeColor);
-    }
-    changeHobby(hobby){
-        this.props.updateHobby(hobby);
-    }
-    changeBirthDay(birthDay){
-        this.props.updateBirthDay(birthDay);
-    }
-    changeBirthMonth(birthMonth){
-        this.props.updateBirthMonth(birthMonth);
-    }
-    changeBirthYear(birthYear){
-        this.props.updateBirthYear(birthYear);
+            firstName: first_name || '',
+            firstNameTitle: first_name || '',
+            lastName: last_name || '',
+            lastNameTitle: last_name || '',
+            gender: gender || '',
+            hairColor: hair_color || '',
+            eyeColor: eye_color || '',
+            hobby: hobby || '',
+            birthDay: bday || 0,
+            birthMonth: bmonth || '',
+            birthYear: byear || 0,
+            picture: img || '',
+        });
+        this.props.history.push('/dash');
     }
     updateShmupdate(){
-        let {firstName, lastName, gender, hairColor,
-            eyeColor, hobby, birthDay, birthMonth, birthYear} = this.props;
-        let user = {
-            firstName: firstName,
-            lastName: lastName,
-            hairColor: hairColor,
-            eyeColor: eyeColor,
-            gender: gender,
-            hobby: hobby,
-            birthDay: birthDay,
-            birthMonth: birthMonth,
-            birthYear: birthYear
-        }
-        axios.patch(`/api/user/patch/${this.props.user.id}`, user).then(res => {
-            console.log('patchin: ', res.data);
-            this.props.history.push('/dash')});
+        const {firstName, lastName, gender, hairColor, eyeColor,
+                hobby, birthDay, birthMonth, birthYear} = this.state;
+       
+        
+        axios.put('/api/user/put', {firstName, lastName, gender, hairColor, eyeColor, hobby, birthDay, birthMonth, birthYear}).then(user => {
+            let {first_name, last_name, gender, hair_color, eye_color, hobby, bday, bmonth, byear, img} = user.data[0];
+        this.setState({
+            firstName: first_name || '',
+            firstNameTitle: first_name || '',
+            lastName: last_name || '',
+            lastNameTitle: last_name || '',
+            gender: gender || '',
+            hairColor: hair_color || '',
+            eyeColor: eye_color || '',
+            hobby: hobby || '',
+            birthDay: bday || 0,
+            birthMonth: bmonth || '',
+            birthYear: byear || 0,
+            picture: img || '',
+            user: user.data
+        })
+        })
+        this.props.history.push('/dash');
     }
-    render() {
-        let daySelect = this.state.days.map((day,i) => {
-            return <option value={day} key={i}>{day}</option>
-        })
-        let monthSelect = this.state.months.map((month,i) => {
-            return <option value={month} key={i}>{month}</option>
-        })
-        let year = parseInt(this.state.currentDate+1);
-        let yearSelect = this.state.days.map((val,i) => {
-            year--;
-            return <option value={year} key={i}>{year}</option>
-        })
-        console.log("user.id: ",this.props.user.id);
-        return (
-            <div className='dash'>
-                <Nav/>
-                <div className='midDashContainer'>
-                    <div className='topContainer'>
-                        <div className='profileAvatarContainer'>
-                            <img className='profileAvatar' src={this.props.user.picture} alt='pic'/>
-                            <h4 className='profileUsername'>{this.props.user.firstname}</h4>
+    render(){
+        return(
+            <div>
+                <Nav>{this.state.view}</Nav>
+                <div className='pagebody'>
+                <div className='dashcontent'>
+                    <div className='profile_info'>
+                        <div className='profileImgName'>
+                            <img src={this.state.picture} className='profileImg' alt='img'/>
+                            <div>
+                                <h2>{this.state.firstNameTitle}</h2>
+                                <h2>{this.state.lastNameTitle}</h2>
+                            </div>
                         </div>
-                        <div className='profileButtonContainer'>
-                            <button className='updateButton' onClick={() => this.updateShmupdate()}>Update</button>
-                            <Link to='/dash'><button className='cancelButton'>Cancel</button></Link>
+                        <div className='profileButtons'>
+                            <button id='blackButton' className='searchButton' onClick={this.updateShmupdate}>Update</button>
+                            <button id='greyButton' className='searchButton' onClick={this.cancelUpdates}>Cancel</button>
                         </div>
                     </div>
-                    <div className='profileBottomContainer'>
-                        <div>
-                            <h4 className='profileInfoTitles'>First Name</h4>
-                            <input onChange={(e) => this.changeFirst(e.target.value)}/>
-                            <h4 className='profileInfoTitles'>Last Name</h4>
-                            <input onChange={(e) => this.changeLast(e.target.value)}/>
-                            <h4 className='profileInfoTitles'>Gender</h4>
-                            <select onChange={(e) => this.changeGender(e.target.value)}>
-                                <option selected>--SELECT--</option>
-                                <option value='Male'>Male</option>
-                                <option value='Female'>Female</option>
-                            </select>
-                            <h4 className='profileInfoTitles'>Hair Color</h4>
-                            <select onChange={(e) => this.changeHairColor(e.target.value)}>
-                                <option selected>--SELECT--</option>
-                                <option value='Purple'>Purple</option>
-                                <option value='black'>Black</option>
-                                <option value='orange'>Orange</option>
-                                <option value='blue'>Blue</option>
-                                <option value='yellow'>Yellow</option>
-                                <option value='green'>Green</option>
-                                <option value='white'>White</option>
-                                <option value='brown'>Brown</option>
-                            </select>
-                            <h4 className='profileInfoTitles'>Eye Color</h4>
-                            <select onChange={(e) => this.changeEyeColor(e.target.value)}>
-                                <option selected>--SELECT--</option>
-                                <option value='blue'>Blue</option>
-                                <option value='brown'>Black</option>
-                                <option value='green'>Green</option>
-                                <option value='hazel'>Grey</option>
-                                <option value='white'>White</option>
-                            </select>
-                        </div>
-                        <div>
-                        <h4 className='profileInfoTitles'>Hobby</h4>
-                        <select onChange={(e) => this.changeHobby(e.target.value)}>
-                                <option selected>--SELECT--</option>
-                                <option value='apple picking'>Apple-Picking</option>
-                                <option value='help-desk'>Help Desk</option>
-                                <option value='pickling'>Pickling</option>
-                                <option value='powerpoint'>Powerpoint</option>
-                                <option value='success'>Success!!</option>
-                                <option value='singing'>Singing</option>
-                                <option value='synergy'>Synergy</option>
-                            </select>
-                            <h4 className='ProfileInfoTitles'>Birth Day</h4>
-                            <select onChange={(e) => this.changeBirthDay(e.target.value)}>
-                                <option selected>--SELECT--</option>
-                                {daySelect}
-                            </select>
-                            <h4 className='ProfileInfoTitles'>Birth Month</h4>
-                            <select onChange={(e) => this.changeBirthMonth(e.target.value)}>
-                                <option selected>--SELECT--</option>
-                                {monthSelect}
-                            </select>
-                            <h4 className='ProfileInfoTitles'>Birth Year</h4>
-                            <select onChange={(e) => this.changeBirthYear(e.target.value)}>
-                                <option selected>--SELECT--</option>
-                                {yearSelect}
-                            </select>
+                    <div id='profileEdits' className='bottomContents'>
+                        <div className='profEdits'>
+                            <div className='profEditColumn'>
+                                <p className='profileText'>First Name</p>
+                                <input value={this.state.firstName} className='profileInput' onChange={(e) => this.handleChange(e.target.value, 'firstName')}/>
+                                <p className='profileText'>Last Name</p>
+                                <input value={this.state.lastName} className='profileInput' onChange={(e) => this.handleChange(e.target.value, 'lastName')}/>
+                                <p className='profileText'>Gender</p>
+                                <select value={this.state.gender} className='profileSelect' onChange={(e) => this.handleChange(e.target.value, 'gender')}>
+                                    <option value='male'>Male</option>
+                                    <option value='female'>Female</option>
+                                </select>
+                                <p className='profileText'>Hair Color</p>
+                                <select value={this.state.hairColor} className='profileSelect' onChange={(e) => this.handleChange(e.target.value, 'hairColor')}>
+                                    <option value='Brown'>Brown</option>
+                                    <option value='Blue'>Blue</option>
+                                    <option value='Green'>Green</option>
+                                    <option value='Red'>Red</option>
+                                    <option value='Blonde'>Blonde</option>
+                                    <option value='White'>White</option>
+                                </select>
+                                <p className='profileText'>Eye Color</p>
+                                <select value={this.state.eyeColor} className='profileSelect' onChange={(e) => this.handleChange(e.target.value, 'eyeColor')}>
+                                    <option value='Brown'>Brown</option>
+                                    <option value='Blue'>Blue</option>
+                                    <option value='Green'>Green</option>
+                                </select>
+                            </div>
+                            <div className='profEditColumn'>
+                            <p className='profileText'>Hobby</p>
+                                <select value={this.state.hobby} className='profileSelect' onChange={(e) => this.handleChange(e.target.value, 'hobby')}>
+                                    <option value='Video Games'>Video Games</option>
+                                    <option value='Hiking'>Hiking</option>
+                                    <option value='Rafting'>Rafting</option>
+                                    <option value='Fishing'>Fishing</option>
+                                </select>
+                            <p className='profileText'>Birth Day</p>
+                                <select value={this.state.birthDay} className='profileSelect' onChange={(e) => this.handleChange(e.target.value, 'birthDay')}>
+                                    <option value='1'>1</option>
+                                    <option value='2'>2</option>
+                                    <option value='3'>3</option>
+                                    <option value='4'>4</option>
+                                    <option value='5'>5</option>
+                                    <option value='6'>6</option>
+                                    <option value='7'>7</option>
+                                    <option value='8'>8</option>
+                                    <option value='9'>9</option>
+                                    <option value='10'>10</option>
+                                    <option value='11'>11</option>
+                                    <option value='12'>12</option>
+                                    <option value='13'>13</option>
+                                    <option value='14'>14</option>
+                                    <option value='15'>15</option>
+                                    <option value='16'>16</option>
+                                    <option value='17'>17</option>
+                                    <option value='18'>18</option>
+                                    <option value='19'>19</option>
+                                    <option value='20'>20</option>
+                                    <option value='21'>21</option>
+                                    <option value='22'>22</option>
+                                    <option value='23'>23</option>
+                                    <option value='24'>24</option>
+                                    <option value='25'>25</option>
+                                    <option value='26'>26</option>
+                                    <option value='27'>27</option>
+                                    <option value='28'>28</option>
+                                    <option value='29'>29</option>
+                                    <option value='30'>30</option>
+                                    <option value='31'>31</option>
+                                </select>
+                            <p className='profileText'>Birth Month</p>
+                                <select value={this.state.birthMonth} className='profileSelect' onChange={(e) => this.handleChange(e.target.value, 'birthMonth')}>
+                                    <option value='Jan'>Jan</option>
+                                    <option value='Feb'>Feb</option>
+                                    <option value='Mar'>Mar</option>
+                                    <option value='Apr'>Apr</option>
+                                    <option value='May'>May</option>
+                                    <option value='Jun'>Jun</option>
+                                    <option value='Jul'>Jul</option>
+                                    <option value='Aug'>Aug</option>
+                                    <option value='Sep'>Sep</option>
+                                    <option value='Oct'>Oct</option>
+                                    <option value='Nov'>Nov</option>
+                                    <option value='Dec'>Dec</option>
+                                </select>
+                            <p className='profileText'>Birth Year</p>
+                                <select value={this.state.birthYear} className='profileSelect' onChange={(e) => this.handleChange(e.target.value, 'birthYear')}>
+                                    <option value='2018'>2018</option>
+                                    <option value='2017'>2017</option>
+                                    <option value='2016'>2016</option>
+                                    <option value='2015'>2015</option>
+                                    <option value='2014'>2014</option>
+                                    <option value='2013'>2013</option>
+                                    <option value='2012'>2012</option>
+                                    <option value='2011'>2011</option>
+                                    <option value='2010'>2010</option>
+                                    <option value='2009'>2009</option>
+                                    <option value='2008'>2008</option>
+                                    <option value='2007'>2007</option>
+                                    <option value='2006'>2006</option>
+                                    <option value='2005'>2005</option>
+                                    <option value='2004'>2004</option>
+                                    <option value='2003'>2003</option>
+                                    <option value='2002'>2002</option>
+                                    <option value='2001'>2001</option>
+                                    <option value='2000'>2000</option>
+                                    <option value='1999'>1999</option>
+                                    <option value='1998'>1998</option>
+                                    <option value='1997'>1997</option>
+                                    <option value='1996'>1996</option>
+                                    <option value='1995'>1995</option>
+                                    <option value='1994'>1994</option>
+                                    <option value='1993'>1993</option>
+                                    <option value='1992'>1992</option>
+                                    <option value='1991'>1991</option>
+                                    <option value='1990'>1990</option>
+                                    <option value='1989'>1989</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
-        );
+        )
     }
 }
-let mapStateToProps = state => {
-    let {user,firstName,lastName,gender,hairColor,eyeColor,
-        hobby,birthDay,birthMonth,birthYear} = state;
-    return {
-        user,
-        firstName,
-        lastName,
-        gender,
-        hairColor,
-        eyeColor,
-        hobby,
-        birthDay,
-        birthMonth,
-        birthYear
-    }
-}
-
-export default connect(mapStateToProps, {getUser,updateFirstName,updateLastName,updateGender,updateHairColor,updateEyeColor,updateHobby,updateBirthDay,updateBirthMonth,updateBirthYear})(Profile);
+export default connect(state => state, {getUser})(Profile);

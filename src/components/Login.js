@@ -4,13 +4,17 @@ import logo from '../assets/logo.png';
 
 const Login = () => {
     return (
-        <div className='login'>
-            <div className='loginButtonWrap'>
-                <img className='loginLogo' src={logo} alt='logo'/>
-                <h1 className='loginHeader'>Helo</h1>
-                <a href={process.env.REACT_APP_LOGIN}>
-                <button className='loginButton'>Login / Register</button>
-                </a>
+        <div className='authBody'>
+            <div className='heloBox'>
+                <div className='heloLogo'>
+                    <img className='heloImg' src={logo} alt='logo'/>
+                <h1 className='logoText'>Helo</h1>
+                </div>
+                <div className='authLinkContainer'>
+                    <div className='authLinks'>
+                        <a href='http://localhost:1337/auth' className='authLinkText'>Login / Register</a>
+                    </div>
+                </div>
             </div>   
         </div>
     );

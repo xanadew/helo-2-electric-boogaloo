@@ -1,3 +1,3 @@
-DELETE FROM friends
-WHERE friend_id = $1 AND match_id = $2
+DELETE FROM helo_friends
+WHERE user_id = $1 AND friend_id = $2
 RETURNING *;

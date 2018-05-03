@@ -1,2 +1,2 @@
-SELECT * FROM users
+SELECT * FROM helo
 WHERE auth_id = $1

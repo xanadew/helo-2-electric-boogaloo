@@ -1,2 +1,2 @@
-SELECT count(id) FROM users
+SELECT count(*) FROM helo
 WHERE id != $1;

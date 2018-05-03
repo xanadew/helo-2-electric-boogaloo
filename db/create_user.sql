@@ -1,5 +1,5 @@
-INSERT INTO users
-(username, auth_id, firstName, lastName, picture)
+INSERT INTO helo
+(auth_id, img)
 VALUES
-($1, $2, $3, $4, $5)
-RETURNING *;
+($1, 'https://robohash.org/me');
+SELECT *  FROM helo WHERE auth_id = $1;

@@ -48,22 +48,19 @@ passport.use(new Auth0Strategy({
     scope: 'openid profile'
 }, (accessToken, refreshToken, extraParams, profile, done) => {
     const db = app.get('db');
-    let {nickname, name, auth_id, picture, user_id} = profile;
-    db.find_user([user_id]).then(user => {
-        if (user[0]) {
-            console.log('found user: ', user[0].id);
-            return done(null, user[0].id, user[0].firstname, user[0].lastname);
+    // let {nickname, name, auth_id, picture, user_id} = profile;
+    db.find_user([profile.id]).then(users => {
+        if(!users[0]){
+            db.create_user([profile.id]).then(user => {
+                done(null, user[0].id);
+            })
         } else {
-            db.create_user([nickname, user_id, name.givenName, name.familyName, 'https://robohash.org/me'])
-            .then(user => {
-                console.log('fresh meat: ', user);
-                return done(null, user[0].id, user[0].firstname, user[0].lastname);
-            }).catch(err => console.log('fuck - create_user: ', err));
+            done(null, users[0].id);
         }
     }).catch(err => console.log('fuck - finduser: ', err));
 }));
 
-app.get('/auth/login', passport.authenticate('auth0'));
+app.get('/auth', passport.authenticate('auth0'));
 app.get('/auth/callback', passport.authenticate('auth0', {
     successRedirect: 'http://localhost:3000/#/dash',
     failureRedirect: 'http://localhost:3000/#/'
@@ -77,9 +74,9 @@ app.get('/api/auth/authenticated', (req,res) => {
     res.status(200).send(req.user);
 }});
 
-app.post('/auth/logout', (req,res) => {
-    req.logOut();
-    res.redirect('http://localhost:3000/auth/callback')
+app.get('/auth/logout', (req,res) => {
+    req.logout();
+    res.redirect('http://localhost:3000/')
 });
 
 passport.serializeUser((user,done) => {
@@ -99,7 +96,14 @@ app.post('/api/friend/add', friendCtrl.conjureFriend);
 app.post('/api/friend/remove', friendCtrl.banishFriend);
 
 // userpointz
-app.patch('/api/user/patch/:id', userCtrl.revitalizeUser);
-app.get('/api/user/list', userCtrl.getPaginatedUsers);
-app.get('/api/user/search', userCtrl.filterUsers);
-app.post('/api/recommended', userCtrl.retrieveUsers);
+app.put('/api/user/put', userCtrl.revitalizeUser);
+app.get('/api/user/count', userCtrl.getUserCount);
+app.get('/api/user/list', userCtrl.retrieveUsers);
+//app.get('/api/user/search', userCtrl.filterUsers);
+app.get('/api/recommended', (req,res,next) => {
+    if(req.user){
+        console.log(req.user.id);
+    app.get('db').get_enemies(req.user.id).then(users => 
+    res.status(200).send(users)).catch(err => console.log('fuckckckckc', err))
+}});
+app.get('/api/user', userCtrl.getUser)

@@ -1,5 +1,4 @@
-INSERT INTO friends
-(match_id, friend_id)
+INSERT INTO helo_friends
+(user_id, friend_id)
 VALUES
-($1, $2)
-RETURNING *;
+($1, $2);
